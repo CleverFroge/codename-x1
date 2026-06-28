@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>CodenameX1.Smoke</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\TerrariaVanilla\ReLogic\ReLogic.csproj" />
+    <ProjectReference Include="..\..\TerrariaVanilla\TerrariaVanilla.csproj" />
+    <Compile Include="..\..\scripts\world\TerrariaWorldExporter.cs" Link="TerrariaWorldExporter.cs" />
+    <Compile Include="..\..\scripts\world\WorldState.cs" Link="WorldState.cs" />
+    <Compile Include="..\..\scripts\world\WorldTile.cs" Link="WorldTile.cs" />
+    <Compile Include="..\..\scripts\world\TileIds.cs" Link="TileIds.cs" />
+    <Compile Include="..\..\scripts\world\WorldConfig.cs" Link="WorldConfig.cs" />
+    <Compile Include="..\..\scripts\world\GenVars.cs" Link="GenVars.cs" />
+    <Compile Include="..\..\scripts\world\GenRandom.cs" Link="GenRandom.cs" />
+  </ItemGroup>
+</Project>

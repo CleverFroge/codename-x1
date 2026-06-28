@@ -1,0 +1,35 @@
+<Project Sdk="Godot.NET.Sdk/4.7.0">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <RootNamespace>CodenameX1</RootNamespace>
+    <AssemblyName>CodenameX1</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="tools/**" />
+    <Compile Remove="scripts/**/*.gd" />
+    <Compile Remove="TerrariaVanilla/**" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Security.Permissions" Version="8.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Godot output omits transitive runtime DLLs; copy explicitly for Newtonsoft.Json in TerrariaVanilla -->
+    <None Include="$(NuGetPackageRoot)system.security.permissions\8.0.0\lib\net8.0\System.Security.Permissions.dll" Link="System.Security.Permissions.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" Condition="Exists('$(NuGetPackageRoot)system.security.permissions\8.0.0\lib\net8.0\System.Security.Permissions.dll')" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="TerrariaVanilla\TerrariaVanilla.csproj" />
+  </ItemGroup>
+  <Target Name="CopyGodotRuntimeDeps" AfterTargets="Build">
+    <PropertyGroup>
+      <_GodotBin>$(MSBuildProjectDirectory)\.godot\mono\temp\bin\$(Configuration)\</_GodotBin>
+      <_PermDll>$(NuGetPackageRoot)system.security.permissions\8.0.0\lib\net8.0\System.Security.Permissions.dll</_PermDll>
+    </PropertyGroup>
+    <Copy SourceFiles="$(_PermDll)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" Condition="Exists('$(_PermDll)')" />
+    <Copy SourceFiles="$(_PermDll)" DestinationFolder="$(_GodotBin)" SkipUnchangedFiles="true" Condition="Exists('$(_PermDll)') And Exists('$(_GodotBin)')" />
+  </Target>
+</Project>

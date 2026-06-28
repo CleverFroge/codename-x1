@@ -1,0 +1,67 @@
+# Terraria 原版世界生成 — 逐字移植
+
+## 原则
+
+**禁止简化重写。** 代码必须从 `Terraria.exe` 反编译后原样迁入，仅允许：
+
+- `Main.tile` → 宿主层 `WorldGenHost` 映射
+- 非世界生成依赖（音效/UI/成就）→ `stubs/` 空实现
+
+## 当前状态
+
+| 内容 | 状态 |
+|------|------|
+| `vanilla/` 下 12 个精选 .cs | 已从 `tools/terraria-reverse/source/` **原样复制** |
+| `WorldGen.cs` (2.2MB, 97 Pass) | 已复制，**尚不能编译**（缺 GenVars、WorldBuilding、Liquid 等） |
+| `TerrainPass.cs` / `JunglePass.cs` | 已复制 |
+| 完整 1499 个 .cs | **已从上述路径反编译**，位于 `TerrariaVanilla/source/` |
+| ILSpy `ref` / `_002Ector` 语法 | 已用 `fix_decompile_artifacts.ps1` 批量修复 |
+| 内嵌依赖 DLL | 已用 `extract_terrarria_libs.ps1` 提取到 `tools/terraria-reverse/libs/` |
+| `Projectile.SetDefaults` CS8078 | 已拆成 4 个 chunk 方法（逻辑不变） |
+## 路线 A（进行中）
+
+只编译世界生成相关子集 + ReLogic 源码（MonoGame），不编 UI/音频/联机客户端。
+
+| 步骤 | 状态 |
+|------|------|
+| ReLogic 反编译 → `TerrariaVanilla/ReLogic/` | **编译通过**（MonoGame，0 错误） |
+| TerrariaVanilla 引用 ReLogic 工程（非预编译 DLL） | 已切换 |
+| CS0012 XNA/MonoGame 冲突 | **已消除**（836 → 0） |
+| 排除客户端模块（Social/UI/Audio/Graphics…） | 已配置 |
+| TerrariaVanilla 剩余错误 | **~985**（缺类型 stub、Main 依赖等） |
+| `WorldGenHost` 宿主层 | 待编译通过后实现 |
+
+构建命令：
+
+```powershell
+.\tools\terraria-reverse\scripts\build_worldgen_subset.ps1
+```
+
+## 一键反编译并接入
+
+```powershell
+# 将路径改为你 Steam 里的 Terraria.exe
+.\tools\terraria-reverse\scripts\decompile_and_port.ps1 "D:\Program Files (x86)\Steam\steamapps\common\Terraria\Terraria.exe"
+```
+
+脚本会：
+
+1. 用 ilspycmd 反编译完整源码到 `tools/terraria-reverse/source_full/`
+2. 复制世界生成相关文件到 `godot/TerrariaVanilla/vanilla/`
+
+## 编译
+
+```powershell
+cd godot\TerrariaVanilla
+dotnet build
+```
+
+编译通过后，`CodenameX1` 的 `WorldGenerator` 将切换为调用 `Terraria.WorldGen.GenerateWorld()`（与原版相同入口：Reset → AddPasses → 97 Pass）。
+
+## 97 个 Pass 顺序
+
+见 `WorldGen.cs` 的 `AddPasses()`（约 11521 行起）。标准世界约运行 95 个 Pass。
+
+## 随机数
+
+必须使用 `Terraria.Utilities.UnifiedRandom`（与 `Main.rand` 相同），不能用 `System.Random`，否则同种子地图不一致。

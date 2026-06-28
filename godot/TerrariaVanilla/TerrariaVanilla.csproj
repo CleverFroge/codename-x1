@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <DefineConstants>TRACE;CODENAME_X1_PORT</DefineConstants>
+    <LangVersion>12</LangVersion>
+  </PropertyGroup>
+
+  <!-- Route A: full decompiled Terraria minus optional native/audio/testing debug edges -->
+  <ItemGroup>
+    <Compile Include="source/**/*.cs"
+      Exclude="
+        source/Terraria.Utilities/FileBrowser/**;
+        source/Terraria.Social.WeGame/**;
+        source/Terraria.Audio/MP3AudioTrack.cs;
+        source/Terraria.Initializers/ChromaInitializer.cs;
+        source/Terraria.Testing/FxReader.cs;
+        source/obj/**;
+        source/bin/**" />
+    <Compile Include="port/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="source/Terraria.GameContent.WorldBuilding.Configuration.json" LogicalName="Terraria.GameContent.WorldBuilding.Configuration.json" />
+    <EmbeddedResource Include="source/Terraria.GameContent.Metadata.MaterialData.Materials.json" LogicalName="Terraria.GameContent.Metadata.MaterialData.Materials.json" />
+    <EmbeddedResource Include="source/Terraria.GameContent.Metadata.MaterialData.Tiles.json" LogicalName="Terraria.GameContent.Metadata.MaterialData.Tiles.json" />
+    <EmbeddedResource Include="source/Terraria.Localization.Content.en-US.json" LogicalName="Terraria.Localization.Content.en-US.json" />
+    <EmbeddedResource Include="source/Terraria.Localization.Content.en-US.Game.json" LogicalName="Terraria.Localization.Content.en-US.Game.json" />
+    <EmbeddedResource Include="source/Terraria.GameContent.Creative.Content.Sacrifices.tsv" LogicalName="Terraria.GameContent.Creative.Content.Sacrifices.tsv" />
+    <EmbeddedResource Include="port/deps/System.Security.Permissions.dll" LogicalName="Terraria.Port.Deps.System.Security.Permissions.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="ReLogic\ReLogic.csproj" />
+    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.2.1105" />
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\tools\terraria-reverse\libs\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Ionic.Zip.CF">
+      <HintPath>..\..\tools\terraria-reverse\libs\Ionic.Zip.CF.dll</HintPath>
+    </Reference>
+    <Reference Include="CsvHelper">
+      <HintPath>..\..\tools\terraria-reverse\libs\CsvHelper.dll</HintPath>
+    </Reference>
+    <Reference Include="Steamworks.NET">
+      <HintPath>..\..\tools\terraria-reverse\libs\Steamworks.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="RailSDK.Net">
+      <HintPath>..\..\tools\terraria-reverse\libs\RailSDK.Net.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>
