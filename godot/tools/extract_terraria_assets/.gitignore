@@ -1,0 +1,5 @@
+# Generated exports (run TerrariaAssetExtract locally)
+terraria_assets/
+test_output/
+*.pyc
+__pycache__/
