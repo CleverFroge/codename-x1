@@ -26,7 +26,7 @@ public partial class Main : Node2D
 		RuntimeDependencyLoader.EnsureRegistered();
 
 		_status = GetNode<Label>("UI/StatusLabel");
-		_status.Text = "Starting...";
+		_status.Text = "Starting... | P: Pass Editor";
 
 		_worldView = GetNode<WorldView>("WorldView");
 		_camera = GetNode<Camera2D>("Camera2D");
@@ -92,7 +92,7 @@ public partial class Main : Node2D
 		_camera!.Position = size * 0.5f;
 		_camera.Zoom = new Vector2(0.35f, 0.35f);
 		_status!.Text =
-			$"Terraria-style world | seed {seed} | {world.MaxTilesX}x{world.MaxTilesY} | WASD pan, wheel zoom, R regen";
+			$"Terraria-style world | seed {seed} | {world.MaxTilesX}x{world.MaxTilesY} | WASD pan, wheel zoom, R regen, P Pass Editor";
 		_generating = false;
 		GD.Print($"Generate {genMs}ms, Render {sw.ElapsedMilliseconds}ms, seed={seed}");
 	}
@@ -132,7 +132,12 @@ public partial class Main : Node2D
 			else if (mb.ButtonIndex == MouseButton.WheelDown)
 				_camera!.Zoom = (_camera.Zoom - Vector2.One * step).Clamp(Vector2.One * 0.05f, Vector2.One * 4f);
 		}
-		if (@event is InputEventKey key && key.Pressed && !key.Echo && key.Keycode == Key.R)
-			Generate(Random.Shared.Next());
+		if (@event is InputEventKey key && key.Pressed && !key.Echo)
+		{
+			if (key.Keycode == Key.R)
+				Generate(Random.Shared.Next());
+			else if (key.Keycode == Key.P)
+				GetTree().ChangeSceneToFile("res://scenes/pass_editor/pass_editor.tscn");
+		}
 	}
 }

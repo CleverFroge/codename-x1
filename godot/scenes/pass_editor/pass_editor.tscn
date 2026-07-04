@@ -1,0 +1,87 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/PassEditor.cs" id="1_editor"]
+[ext_resource type="Script" uid="uid://betahh2mo3e7j" path="res://scripts/WorldView.cs" id="2_view"]
+
+[node name="PassEditor" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_editor")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Toolbar" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="SeedLabel" type="Label" parent="VBox/Toolbar"]
+layout_mode = 2
+text = "Seed:"
+
+[node name="SeedEdit" type="LineEdit" parent="VBox/Toolbar"]
+layout_mode = 2
+custom_minimum_size = Vector2(100, 0)
+text = "42"
+
+[node name="GenerateBtn" type="Button" parent="VBox/Toolbar"]
+layout_mode = 2
+text = "Generate"
+
+[node name="StepBtn" type="Button" parent="VBox/Toolbar"]
+layout_mode = 2
+text = "Step"
+
+[node name="RunBtn" type="Button" parent="VBox/Toolbar"]
+layout_mode = 2
+text = "Run to Here"
+
+[node name="RunAllBtn" type="Button" parent="VBox/Toolbar"]
+layout_mode = 2
+text = "Run All"
+
+[node name="ResetBtn" type="Button" parent="VBox/Toolbar"]
+layout_mode = 2
+text = "Reset"
+
+[node name="StatusLabel" type="Label" parent="VBox/Toolbar"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "..."
+clip_text = true
+
+[node name="Split" type="HSplitContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PassList" type="ItemList" parent="VBox/Split"]
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+item_count = 0
+
+[node name="ViewContainer" type="SubViewportContainer" parent="VBox/Split"]
+layout_mode = 2
+stretch = true
+
+[node name="WorldViewport" type="SubViewport" parent="VBox/Split/ViewContainer"]
+handle_input_locally = true
+size = Vector2i(800, 600)
+render_target_update_mode = 4
+
+[node name="WorldView" type="Node2D" parent="VBox/Split/ViewContainer/WorldViewport"]
+script = ExtResource("2_view")
+
+[node name="WorldSprite" type="Sprite2D" parent="VBox/Split/ViewContainer/WorldViewport/WorldView"]
+
+[node name="Camera2D" type="Camera2D" parent="VBox/Split/ViewContainer/WorldViewport/WorldView"]
+position = Vector2(840, 240)
+current = true
+zoom = Vector2(0.5, 0.5)

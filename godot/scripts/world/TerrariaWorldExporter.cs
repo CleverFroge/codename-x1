@@ -34,6 +34,7 @@ public static class TerrariaWorldExporter
 			dst.Type = src.type;
 			dst.Liquid = src.liquid;
 			dst.Lava = src.lava();
+			dst.Honey = src.honey();
 		}
 
 		return world;

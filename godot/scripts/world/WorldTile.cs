@@ -6,6 +6,7 @@ public sealed class WorldTile
 	public int Type = TileIds.Dirt;
 	public byte Liquid;
 	public bool Lava;
+	public bool Honey;
 
 	public void Clear()
 	{
@@ -13,5 +14,6 @@ public sealed class WorldTile
 		Type = TileIds.Dirt;
 		Liquid = 0;
 		Lava = false;
+		Honey = false;
 	}
 }

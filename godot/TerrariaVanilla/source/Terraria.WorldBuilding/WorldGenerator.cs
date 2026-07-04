@@ -463,6 +463,9 @@ public class WorldGenerator
 
 	private static void SetDebugWorldGenUIVisibility(bool visible)
 	{
+#if CODENAME_X1_PORT
+		return;
+#endif
 		bool flag = UIWorldGenDebug.ActiveInstance != null;
 		if (visible == flag)
 		{
