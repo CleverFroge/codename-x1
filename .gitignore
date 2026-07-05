@@ -14,3 +14,7 @@ Thumbs.db
 build/
 dist/
 *.zip
+
+# graphify (local knowledge graph — regenerate with `graphify update .`)
+graphify-out/
+graphify-view/
