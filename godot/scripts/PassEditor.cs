@@ -24,7 +24,8 @@ public partial class PassEditor : Control
 	private readonly List<PassInfo> _passes = new();
 	private int _currentPassIndex = -1;
 	private bool _initialized;
-	private bool _snapPending;
+	private bool _renderPending;
+	private bool _cameraInitialized;
 
 	public override void _Ready()
 	{
@@ -138,6 +139,7 @@ public partial class PassEditor : Control
 		_passes.Clear();
 		_statusLabel!.Text = "Press Generate to start.";
 		_initialized = false;
+		_cameraInitialized = false;
 	}
 
 	private void OnPassListItemSelected(long index)
@@ -163,7 +165,7 @@ public partial class PassEditor : Control
 			_runAllBtn!.Disabled = false;
 			_resetBtn!.Disabled = false;
 			_statusLabel!.Text = $"Ready. {_passes.Count} passes registered. Press Step to execute pass 1.";
-			_snapPending = true;
+			_renderPending = true;
 		}
 
 		var poll = WorldGenHostExt.PollProgress();
@@ -171,7 +173,7 @@ public partial class PassEditor : Control
 		if (poll.JustCompleted)
 		{
 			_currentPassIndex = poll.CompletedPassCount;
-			_snapPending = true;
+			_renderPending = true;
 
 			string msg = $"Pass {poll.LastCompletedPassIndex + 1}/{poll.TotalPassCount}: {poll.LastCompletedPassName} completed ({poll.LastCompletedDurationMs}ms)";
 			_statusLabel!.Text = msg;
@@ -192,14 +194,18 @@ public partial class PassEditor : Control
 			_runAllBtn!.Disabled = true;
 		}
 
-		if (_snapPending)
+		if (_renderPending)
 		{
-			_snapPending = false;
+			_renderPending = false;
 			try
 			{
 				var world = WorldGenHostExt.SnapshotTiles();
 				_worldView!.Render(world);
-				CenterCameraOnWorld();
+				if (!_cameraInitialized)
+				{
+					CenterCameraOnWorld();
+					_cameraInitialized = true;
+				}
 			}
 			catch (Exception ex)
 			{
