@@ -1,6 +1,6 @@
 # Fix regressions and remaining ILSpy / API port artifacts.
 param(
-    [string]$SourceRoot = "$PSScriptRoot\..\..\..\godot\TerrariaVanilla\source"
+    [string]$SourceRoot = "$PSScriptRoot\..\..\..\TerrariaVanilla\source"
 )
 
 $files = Get-ChildItem -Path $SourceRoot -Recurse -Filter *.cs

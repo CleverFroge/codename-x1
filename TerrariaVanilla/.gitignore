@@ -1,0 +1,6 @@
+vanilla/
+*.log
+bin/
+obj/
+**/bin/
+**/obj/

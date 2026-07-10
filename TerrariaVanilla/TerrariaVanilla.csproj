@@ -41,19 +41,19 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\tools\terraria-reverse\libs\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\tools\terraria-reverse\libs\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Ionic.Zip.CF">
-      <HintPath>..\..\tools\terraria-reverse\libs\Ionic.Zip.CF.dll</HintPath>
+      <HintPath>..\tools\terraria-reverse\libs\Ionic.Zip.CF.dll</HintPath>
     </Reference>
     <Reference Include="CsvHelper">
-      <HintPath>..\..\tools\terraria-reverse\libs\CsvHelper.dll</HintPath>
+      <HintPath>..\tools\terraria-reverse\libs\CsvHelper.dll</HintPath>
     </Reference>
     <Reference Include="Steamworks.NET">
-      <HintPath>..\..\tools\terraria-reverse\libs\Steamworks.NET.dll</HintPath>
+      <HintPath>..\tools\terraria-reverse\libs\Steamworks.NET.dll</HintPath>
     </Reference>
     <Reference Include="RailSDK.Net">
-      <HintPath>..\..\tools\terraria-reverse\libs\RailSDK.Net.dll</HintPath>
+      <HintPath>..\tools\terraria-reverse\libs\RailSDK.Net.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

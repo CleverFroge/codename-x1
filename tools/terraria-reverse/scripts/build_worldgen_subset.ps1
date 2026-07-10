@@ -1,7 +1,7 @@
 # Route A: build TerrariaVanilla world-gen subset + ReLogic from source.
 $ErrorActionPreference = "Stop"
 $scripts = $PSScriptRoot
-$root = "$scripts\..\..\..\godot\TerrariaVanilla"
+$root = "$scripts\..\..\TerrariaVanilla"
 
 Write-Host "==> Apply decompile / MonoGame port fixes"
 & "$scripts\fix_decompile_artifacts.ps1"

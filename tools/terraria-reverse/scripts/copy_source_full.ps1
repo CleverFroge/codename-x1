@@ -1,7 +1,7 @@
 # Copy world-gen related decompiled sources into TerrariaVanilla
 param(
     [string]$SourceFull = "$PSScriptRoot\..\source_full",
-    [string]$Dest = "$PSScriptRoot\..\..\..\godot\TerrariaVanilla\source"
+    [string]$Dest = "$PSScriptRoot\..\..\..\TerrariaVanilla\source"
 )
 
 $ErrorActionPreference = "Stop"

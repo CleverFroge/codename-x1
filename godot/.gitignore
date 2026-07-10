@@ -22,7 +22,3 @@ bin/
 obj/
 **/bin/
 **/obj/
-
-# Raw decompile copy (build uses source/ only)
-TerrariaVanilla/vanilla/
-TerrariaVanilla/*.log

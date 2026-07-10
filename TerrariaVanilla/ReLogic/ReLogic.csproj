@@ -18,13 +18,13 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\..\tools\terraria-reverse\libs\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\tools\terraria-reverse\libs\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Ionic.Zip.CF">
-      <HintPath>..\..\..\tools\terraria-reverse\libs\Ionic.Zip.CF.dll</HintPath>
+      <HintPath>..\..\tools\terraria-reverse\libs\Ionic.Zip.CF.dll</HintPath>
     </Reference>
     <Reference Include="SteelSeriesEngineWrapper">
-      <HintPath>..\..\..\tools\terraria-reverse\libs\SteelSeriesEngineWrapper.dll</HintPath>
+      <HintPath>..\..\tools\terraria-reverse\libs\SteelSeriesEngineWrapper.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

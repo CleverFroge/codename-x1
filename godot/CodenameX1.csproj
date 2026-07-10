@@ -8,27 +8,45 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <TerrariaVanillaRoot>$(MSBuildProjectDirectory)\..\TerrariaVanilla\</TerrariaVanillaRoot>
+    <TerrariaVanillaBin>$(TerrariaVanillaRoot)bin\$(Configuration)\net8.0-windows\</TerrariaVanillaBin>
+    <ReLogicBin>$(TerrariaVanillaRoot)ReLogic\bin\$(Configuration)\net8.0-windows\</ReLogicBin>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="tools/**" />
     <Compile Remove="scripts/**/*.gd" />
-    <Compile Remove="TerrariaVanilla/**" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Security.Permissions" Version="8.0.0" />
+    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.2.1105" />
   </ItemGroup>
   <ItemGroup>
-    <!-- Godot output omits transitive runtime DLLs; copy explicitly for Newtonsoft.Json in TerrariaVanilla -->
+  <!-- Godot output omits transitive runtime DLLs; copy explicitly for Newtonsoft.Json in TerrariaVanilla -->
     <None Include="$(NuGetPackageRoot)system.security.permissions\8.0.0\lib\net8.0\System.Security.Permissions.dll" Link="System.Security.Permissions.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" Condition="Exists('$(NuGetPackageRoot)system.security.permissions\8.0.0\lib\net8.0\System.Security.Permissions.dll')" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="TerrariaVanilla\TerrariaVanilla.csproj" />
+    <Reference Include="TerrariaVanilla">
+      <HintPath>$(TerrariaVanillaBin)TerrariaVanilla.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="ReLogic">
+      <HintPath>$(ReLogicBin)ReLogic.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
   </ItemGroup>
-  <Target Name="CopyGodotRuntimeDeps" AfterTargets="Build">
+  <Target Name="BuildTerrariaVanilla" BeforeTargets="BeforeBuild">
+    <MSBuild Projects="$(TerrariaVanillaRoot)TerrariaVanilla.csproj" Targets="Build" Properties="Configuration=$(Configuration)" />
+  </Target>
+  <Target Name="CopyTerrariaRuntimeDeps" AfterTargets="Build">
     <PropertyGroup>
       <_GodotBin>$(MSBuildProjectDirectory)\.godot\mono\temp\bin\$(Configuration)\</_GodotBin>
       <_PermDll>$(NuGetPackageRoot)system.security.permissions\8.0.0\lib\net8.0\System.Security.Permissions.dll</_PermDll>
     </PropertyGroup>
+    <ItemGroup>
+      <_TerrariaRuntimeDll Include="$(TerrariaVanillaBin)*.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_TerrariaRuntimeDll)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(_TerrariaRuntimeDll)" DestinationFolder="$(_GodotBin)" SkipUnchangedFiles="true" Condition="Exists('$(_GodotBin)')" />
     <Copy SourceFiles="$(_PermDll)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" Condition="Exists('$(_PermDll)')" />
     <Copy SourceFiles="$(_PermDll)" DestinationFolder="$(_GodotBin)" SkipUnchangedFiles="true" Condition="Exists('$(_PermDll)') And Exists('$(_GodotBin)')" />
   </Target>

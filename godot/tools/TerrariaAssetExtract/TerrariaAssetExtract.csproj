@@ -8,6 +8,6 @@
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\TerrariaVanilla\ReLogic\ReLogic.csproj" />
+    <ProjectReference Include="..\..\..\TerrariaVanilla\ReLogic\ReLogic.csproj" />
   </ItemGroup>
 </Project>

@@ -1,6 +1,6 @@
 # Split Projectile.SetDefaults if-else chain to fix Roslyn CS8078 (expression too complex).
 param(
-    [string]$File = "$PSScriptRoot\..\..\..\godot\TerrariaVanilla\source\Terraria\Projectile.cs",
+    [string]$File = "$PSScriptRoot\..\..\..\TerrariaVanilla\source\Terraria\Projectile.cs",
     [int]$BlocksPerChunk = 250
 )
 

@@ -7,8 +7,8 @@
     <RootNamespace>CodenameX1.Smoke</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\TerrariaVanilla\ReLogic\ReLogic.csproj" />
-    <ProjectReference Include="..\..\TerrariaVanilla\TerrariaVanilla.csproj" />
+    <ProjectReference Include="..\..\..\TerrariaVanilla\ReLogic\ReLogic.csproj" />
+    <ProjectReference Include="..\..\..\TerrariaVanilla\TerrariaVanilla.csproj" />
     <Compile Include="..\..\scripts\world\TerrariaWorldExporter.cs" Link="TerrariaWorldExporter.cs" />
     <Compile Include="..\..\scripts\world\WorldState.cs" Link="WorldState.cs" />
     <Compile Include="..\..\scripts\world\WorldTile.cs" Link="WorldTile.cs" />

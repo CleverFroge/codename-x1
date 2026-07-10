@@ -1,6 +1,6 @@
 # Fix MonoGame Color constructor ambiguity on .NET 8 (CS0121).
 param(
-    [string]$SourceRoot = "$PSScriptRoot\..\..\..\godot\TerrariaVanilla\source"
+    [string]$SourceRoot = "$PSScriptRoot\..\..\..\TerrariaVanilla\source"
 )
 
 $files = Get-ChildItem -Path $SourceRoot -Recurse -Filter *.cs

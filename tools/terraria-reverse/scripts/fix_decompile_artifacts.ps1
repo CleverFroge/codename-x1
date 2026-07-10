@@ -1,7 +1,7 @@
 # Fix ILSpy decompiler artifacts that are invalid C# but compile in original IL.
 # Run after copy_source_full.ps1 / decompile_and_port.ps1
 param(
-    [string]$SourceRoot = "$PSScriptRoot\..\..\..\godot\TerrariaVanilla\source"
+    [string]$SourceRoot = "$PSScriptRoot\..\..\..\TerrariaVanilla\source"
 )
 
 $files = Get-ChildItem -Path $SourceRoot -Recurse -Filter *.cs

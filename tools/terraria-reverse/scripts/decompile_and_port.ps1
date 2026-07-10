@@ -3,7 +3,7 @@ param(
     [Parameter(Mandatory = $false)]
     [string]$TerrariaExe = "D:\Program Files (x86)\Steam\steamapps\common\Terraria\Terraria.exe",
     [string]$OutputDir = "$PSScriptRoot\..\source_full",
-    [string]$PortDir = "$PSScriptRoot\..\..\..\godot\TerrariaVanilla\vanilla"
+    [string]$PortDir = "$PSScriptRoot\..\..\..\TerrariaVanilla\vanilla"
 )
 
 $ErrorActionPreference = "Stop"
