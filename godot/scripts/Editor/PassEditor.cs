@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using Godot;
+using CodenameX1.Runtime;
 using CodenameX1.World;
 
-namespace CodenameX1;
+namespace CodenameX1.Editor;
 
 public partial class PassEditor : Control
 {
@@ -76,8 +77,15 @@ public partial class PassEditor : Control
 			catch (Exception ex)
 			{
 				GD.PrintErr($"Initialize failed: {ex}");
+				CallDeferred(MethodName.OnInitializeFailed, ex.Message);
 			}
 		});
+	}
+
+	private void OnInitializeFailed(string message)
+	{
+		_statusLabel!.Text = $"Initialize failed: {message}";
+		_generateBtn!.Disabled = false;
 	}
 
 	private void RefreshPassList()

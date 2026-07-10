@@ -1,4 +1,4 @@
-namespace CodenameX1.World;
+namespace CodenameX1.Editor;
 
 public sealed class PassInfo
 {

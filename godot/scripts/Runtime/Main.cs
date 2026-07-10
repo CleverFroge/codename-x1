@@ -2,7 +2,7 @@ using Godot;
 using CodenameX1.World;
 using Terraria.Port;
 
-namespace CodenameX1;
+namespace CodenameX1.Runtime;
 
 public partial class Main : Node2D
 {

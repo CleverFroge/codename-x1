@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using CodenameX1.World;
 using Terraria.IO;
 using Terraria.WorldBuilding;
 
-namespace CodenameX1.World;
+namespace CodenameX1.Editor;
 
 public static class WorldGenHostExt
 {

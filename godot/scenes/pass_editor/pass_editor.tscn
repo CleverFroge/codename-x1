@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
-[ext_resource type="Script" path="res://scripts/PassEditor.cs" id="1_editor"]
-[ext_resource type="Script" uid="uid://betahh2mo3e7j" path="res://scripts/WorldView.cs" id="2_view"]
+[ext_resource type="Script" path="res://scripts/Editor/PassEditor.cs" id="1_editor"]
+[ext_resource type="Script" uid="uid://betahh2mo3e7j" path="res://scripts/Runtime/WorldView.cs" id="2_view"]
 
 [node name="PassEditor" type="Control"]
 layout_mode = 3
