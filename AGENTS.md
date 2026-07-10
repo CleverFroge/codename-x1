@@ -12,9 +12,15 @@
 ├── graphify-out/          # 代码知识图谱（gitignore，仓库根目录生成）
 └── godot/                 # Godot 4.7 + C# 主工程
     ├── scenes/
-    │   ├── main/          # 游戏主场景（一键生成浏览地图）
-    │   └── pass_editor/   # Pass 逐步调试编辑器
+    │   ├── main_menu/     # 主界面 + PassEditor（启动入口）
+    │   └── main/          # 游戏主场景（一键生成浏览地图）
     └── scripts/
-        ├── Runtime/       # 游戏运行时（CodenameX1.Runtime / CodenameX1.World）
-        └── Editor/        # 开发工具（CodenameX1.Editor）
+        ├── System/            # UI 系统（仅主界面等 UI；命名空间勿用 .System）
+        ├── GamePlay/          # 玩法逻辑
+        │   └── World/         # 世界数据与生成（CodenameX1.World）
+        ├── Main.cs            # 游戏场景逻辑
+        ├── WorldView.cs       # 世界渲染
+        ├── PassEditor.cs      # Pass 逐步调试（进入前选原生/泰拉）
+        ├── PassInfo.cs
+        └── WorldGenHostExt.cs
 ```

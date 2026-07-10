@@ -7,7 +7,7 @@ using CodenameX1.World;
 using Terraria.IO;
 using Terraria.WorldBuilding;
 
-namespace CodenameX1.Editor;
+namespace CodenameX1;
 
 public static class WorldGenHostExt
 {

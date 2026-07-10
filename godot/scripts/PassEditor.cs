@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Godot;
-using CodenameX1.Runtime;
 using CodenameX1.World;
 
-namespace CodenameX1.Editor;
+namespace CodenameX1;
 
 public partial class PassEditor : Control
 {
@@ -56,11 +55,25 @@ public partial class PassEditor : Control
 		_runAllBtn.Disabled = true;
 		_resetBtn.Disabled = true;
 
-		_statusLabel.Text = "Press Generate to start. | Ctrl+Scroll: Zoom | Esc: Back";
+		if (WorldGenSession.Backend == WorldGenBackend.Native)
+		{
+			_generateBtn.Disabled = true;
+			_statusLabel.Text = "模式：项目原生 — Pass 管线尚未接入，请返回主界面改选「泰拉瑞亚参考」。| Esc: 主界面";
+		}
+		else
+		{
+			_statusLabel.Text = "模式：泰拉瑞亚参考 | Press Generate to start. | Ctrl+Scroll: Zoom | Esc: 主界面";
+		}
 	}
 
 	private void OnGenerate()
 	{
+		if (WorldGenSession.Backend != WorldGenBackend.Terraria)
+		{
+			_statusLabel!.Text = "项目原生生成逻辑尚未接入。";
+			return;
+		}
+
 		if (!int.TryParse(_seedEdit!.Text, out int seed))
 			seed = DefaultSeed;
 
@@ -270,7 +283,7 @@ public partial class PassEditor : Control
 		if (@event is InputEventKey key && key.Pressed && !key.Echo && key.Keycode == Key.Escape)
 		{
 			WorldGenHostExt.Abort();
-			GetTree().ChangeSceneToFile("res://scenes/main/main.tscn");
+			GetTree().ChangeSceneToFile("res://scenes/main_menu/main_menu.tscn");
 		}
 	}
 }

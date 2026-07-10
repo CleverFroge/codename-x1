@@ -2,7 +2,7 @@ using Godot;
 using CodenameX1.World;
 using Terraria.Port;
 
-namespace CodenameX1.Runtime;
+namespace CodenameX1;
 
 public partial class Main : Node2D
 {
@@ -26,7 +26,7 @@ public partial class Main : Node2D
 		RuntimeDependencyLoader.EnsureRegistered();
 
 		_status = GetNode<Label>("UI/StatusLabel");
-		_status.Text = "Starting... | P: Pass Editor";
+		_status.Text = "Starting... | Esc: 主界面";
 
 		_worldView = GetNode<WorldView>("WorldView");
 		_camera = GetNode<Camera2D>("Camera2D");
@@ -92,7 +92,7 @@ public partial class Main : Node2D
 		_camera!.Position = size * 0.5f;
 		_camera.Zoom = new Vector2(0.35f, 0.35f);
 		_status!.Text =
-			$"Terraria-style world | seed {seed} | {world.MaxTilesX}x{world.MaxTilesY} | WASD pan, wheel zoom, R regen, P Pass Editor";
+			$"Terraria-style world | seed {seed} | {world.MaxTilesX}x{world.MaxTilesY} | WASD pan, wheel zoom, R regen, Esc 主界面";
 		_generating = false;
 		GD.Print($"Generate {genMs}ms, Render {sw.ElapsedMilliseconds}ms, seed={seed}");
 	}
@@ -136,8 +136,8 @@ public partial class Main : Node2D
 		{
 			if (key.Keycode == Key.R)
 				Generate(Random.Shared.Next());
-			else if (key.Keycode == Key.P)
-				GetTree().ChangeSceneToFile("res://scenes/pass_editor/pass_editor.tscn");
+			else if (key.Keycode == Key.Escape)
+				GetTree().ChangeSceneToFile("res://scenes/main_menu/main_menu.tscn");
 		}
 	}
 }

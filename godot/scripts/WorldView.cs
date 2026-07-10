@@ -1,7 +1,7 @@
 using Godot;
 using CodenameX1.World;
 
-namespace CodenameX1.Runtime;
+namespace CodenameX1;
 
 public partial class WorldView : Node2D
 {

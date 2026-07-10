@@ -1,4 +1,4 @@
-namespace CodenameX1.Editor;
+namespace CodenameX1;
 
 public sealed class PassInfo
 {
