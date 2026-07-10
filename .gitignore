@@ -5,10 +5,9 @@ Thumbs.db
 *.swo
 *~
 
-# IDE (keep Godot workspace launch settings)
+# IDE
 .vscode/
 .idea/
-!godot/.vscode/
 
 # Build / export
 build/
