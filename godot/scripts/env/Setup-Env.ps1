@@ -47,17 +47,5 @@ finally {
 }
 Write-Host '[OK] C# build'
 
-# WorldGenSmoke
-Write-Host 'Running WorldGenSmoke ...'
-Push-Location $ProjectRoot
-try {
-    dotnet run --project tools/WorldGenSmoke/WorldGenSmoke.csproj
-    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-}
-finally {
-    Pop-Location
-}
-Write-Host '[OK] WorldGenSmoke'
-
 Write-Host ''
 Write-Host 'Ready. Run .\Launch-X1.bat or open project.godot in Godot Mono editor and press F5.'

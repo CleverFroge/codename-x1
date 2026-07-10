@@ -2,7 +2,7 @@
 
 - **日期**: 2026-07-03
 - **源路径**: `D:\Program Files\Steam\steamapps\common\Terraria\Content`
-- **输出路径**: `tools/extract_terraria_assets/terraria_assets/`（本地，未入库）
+- **输出路径**: `tools/TerrariaAssetExtract/extract_terraria_assets/terraria_assets/`（本地，未入库）
 - **工具**: `tools/TerrariaAssetExtract`（C# / net10.0-windows / ReLogic.XnbReader）
 
 ## 统计

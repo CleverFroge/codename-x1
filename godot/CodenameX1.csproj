@@ -13,7 +13,6 @@
     <ReLogicBin>$(TerrariaVanillaRoot)ReLogic\bin\$(Configuration)\net8.0-windows\</ReLogicBin>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="tools/**" />
     <Compile Remove="scripts/**/*.gd" />
   </ItemGroup>
   <ItemGroup>
