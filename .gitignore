@@ -9,15 +9,22 @@ Thumbs.db
 .vscode/
 .idea/
 
+# .NET build artifacts
+**/bin/
+**/obj/
+
 # Build / export
 build/
 dist/
 *.zip
 
-# graphify (local knowledge graph — regenerate with `graphify update .`)
+# Logs
+*.log
+
+# graphify (regenerate with `graphify update .` from repo root)
 graphify-out/
 graphify-view/
-tree_gen.log
 
-# Terraria decompile intermediate (canonical copy: TerrariaVanilla/source/)
+# Terraria reverse engineering intermediates
 tools/terraria-reverse/source_full/
+tools/terraria-reverse/output_png/

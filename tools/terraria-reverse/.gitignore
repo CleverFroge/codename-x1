@@ -1,9 +1,12 @@
-# xnbcli node_modules 不提交
+# xnbcli local workspace
 xnbcli/node_modules/
 xnbcli/input/
 xnbcli/output/
 
-# 反编译全量产出不提交（只保留核心源码）
+# Decompile output (canonical copy: TerrariaVanilla/source/)
+source_full/
+
+# Selective source/ expansion from copy_source_full.ps1 (curated subset is tracked)
 source/Terraria.Utilities/
 source/Terraria.Social.*/
 source/Terraria.UI.*/
@@ -57,9 +60,3 @@ source/Terraria.Physics/
 source/Terraria.GameInput/
 source/Terraria.Utilities.FileBrowser/
 source/*.cs
-
-# 解包输出的 PNG
-output_png/
-
-# TConvert exe
-TConvert-Console.exe
