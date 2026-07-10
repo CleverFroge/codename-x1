@@ -4,8 +4,10 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$ProjectRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
-. (Join-Path $ProjectRoot 'scripts\env\Find-GodotMono.ps1')
+$LauncherRoot = $PSScriptRoot
+$RepoRoot = Split-Path (Split-Path $LauncherRoot -Parent) -Parent
+$GodotProjectRoot = Join-Path $RepoRoot 'godot'
+. (Join-Path $LauncherRoot 'Find-GodotMono.ps1')
 
 Write-Host '=== Codename X1 environment check ==='
 
@@ -31,13 +33,13 @@ if (-not $godot) {
 if ($godot) {
     Write-Host "[OK] Godot Mono: $godot"
 } else {
-    Write-Error 'Godot Mono not found. Run: .\scripts\env\Setup-Env.ps1 -InstallGodot'
+    Write-Error 'Godot Mono not found. Run: .\tools\Launcher\Setup-Env.ps1 -InstallGodot'
     exit 1
 }
 
 # C# 构建
 Write-Host 'Building CodenameX1.csproj ...'
-Push-Location $ProjectRoot
+Push-Location $GodotProjectRoot
 try {
     dotnet build CodenameX1.csproj -v minimal
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -48,4 +50,4 @@ finally {
 Write-Host '[OK] C# build'
 
 Write-Host ''
-Write-Host 'Ready. Run .\Launch-X1.bat or open project.godot in Godot Mono editor and press F5.'
+Write-Host 'Ready. Run .\Launch-X1.bat from repo root, or open godot/project.godot in Godot Mono editor and press F5.'

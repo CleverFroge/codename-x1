@@ -20,10 +20,6 @@ run/main_scene="res://scenes/pass_editor/pass_editor.tscn"
 config/features=PackedStringArray("4.7", "C#", "GL Compatibility")
 config/icon="res://icon.svg"
 
-[autoload]
-
-BootCheck="*res://scripts/boot_check.gd"
-
 [display]
 
 window/size/viewport_width=1280

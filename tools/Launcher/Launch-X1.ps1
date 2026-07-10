@@ -4,8 +4,10 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$ProjectRoot = $PSScriptRoot
-. (Join-Path $ProjectRoot 'scripts\env\Find-GodotMono.ps1')
+$LauncherRoot = $PSScriptRoot
+$RepoRoot = Split-Path (Split-Path $LauncherRoot -Parent) -Parent
+$GodotProjectRoot = Join-Path $RepoRoot 'godot'
+. (Join-Path $LauncherRoot 'Find-GodotMono.ps1')
 
 $GodotMono = Find-GodotMonoExe
 if (-not $GodotMono) {
@@ -22,7 +24,7 @@ if (-not $GodotMono) {
 
 Write-Host "Godot: $GodotMono"
 Write-Host 'Building C#...'
-Push-Location $ProjectRoot
+Push-Location $GodotProjectRoot
 try {
     dotnet build CodenameX1.csproj -v minimal
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -30,7 +32,7 @@ try {
     $perm = Join-Path $env:USERPROFILE '.nuget\packages\system.security.permissions\8.0.0\lib\net8.0\System.Security.Permissions.dll'
     if (Test-Path -LiteralPath $perm) {
         foreach ($cfg in @('Debug', 'Release')) {
-            $godotBin = Join-Path $ProjectRoot ".godot\mono\temp\bin\$cfg"
+            $godotBin = Join-Path $GodotProjectRoot ".godot\mono\temp\bin\$cfg"
             if (Test-Path -LiteralPath $godotBin) {
                 Copy-Item -LiteralPath $perm -Destination $godotBin -Force
             }
@@ -43,7 +45,7 @@ try {
     }
 
     Write-Host 'Launching 代号X1...'
-    & $GodotMono --path $ProjectRoot @args
+    & $GodotMono --path $GodotProjectRoot @args
     exit $LASTEXITCODE
 }
 finally {
