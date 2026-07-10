@@ -133,7 +133,7 @@ public static class WorldGenHostExt
 		Terraria.Main.GameMode = 0;
 		Terraria.Main.ActiveWorldFileData = CreateWorldMetadata(seed);
 
-		var genVarsType = typeof(GenVars);
+		var genVarsType = typeof(Terraria.WorldBuilding.GenVars);
 		var configField = genVarsType.GetField("configuration", BindingFlags.Public | BindingFlags.Static);
 		configField?.SetValue(null, WorldGenConfiguration.FromEmbeddedPath(
 			"Terraria.GameContent.WorldBuilding.Configuration.json"));

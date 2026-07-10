@@ -18,3 +18,7 @@ dist/
 # graphify (local knowledge graph — regenerate with `graphify update .`)
 graphify-out/
 graphify-view/
+tree_gen.log
+
+# Terraria decompile intermediate (canonical copy: TerrariaVanilla/source/)
+tools/terraria-reverse/source_full/

@@ -42,6 +42,4 @@ tools\TerrariaAssetExtract\extract.bat -i "D:\Program Files\Steam\steamapps\comm
 - `SoundEffect` → `.wav`
 - 保持 `Content/` 子目录结构
 
-## Python 脚本（仅适用于未压缩 XNB / Python 3 + lzx）
-
-`extract_xnb.py` 保留作参考，Terraria 正式版资源需用 C# 工具。
+Terraria 正式版资源请使用 C# 工具 `tools/TerrariaAssetExtract`。

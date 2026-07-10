@@ -5,7 +5,6 @@ public sealed class WorldState
 	public readonly int MaxTilesX;
 	public readonly int MaxTilesY;
 	public readonly WorldTile[,] Tiles;
-	public readonly GenVars GenVars = new();
 
 	public int WorldSurface;
 	public int RockLayer;
