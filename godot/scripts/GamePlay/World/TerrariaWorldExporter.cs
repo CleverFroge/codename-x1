@@ -1,5 +1,6 @@
 using Terraria;
 using Terraria.Port;
+using Terraria.WorldBuilding;
 
 namespace CodenameX1.World;
 
@@ -10,19 +11,25 @@ public static class TerrariaWorldExporter
 	{
 		RuntimeDependencyLoader.EnsureRegistered();
 
-		if (!WorldGenHost.Generate(width, height, seed, onProgress))
-		{
-			throw new InvalidOperationException("Terraria WorldGen.GenerateWorld returned false.");
-		}
+		var progress = new Terraria.WorldBuilding.GenerationProgress();
+		if (onProgress != null)
+			progress.TotalWeight = 1.0;
 
-		var world = new WorldState(width, height);
+		TerrariaPassCatalog.SetupWorld(width, height, seed);
+		var passes = TerrariaPassCatalog.LoadPasses(progress);
+		var pipeline = new WorldGenPipeline(passes, seed, Terraria.WorldBuilding.GenVars.configuration, progress);
+		pipeline.RunAllBlocking();
+
+		int w = Terraria.Main.maxTilesX;
+		int h = Terraria.Main.maxTilesY;
+		var world = new WorldState(w, h);
 		world.WorldSurface = (int)Terraria.Main.worldSurface;
 		world.RockLayer = (int)Terraria.Main.rockLayer;
 
-		for (int x = 0; x < width; x++)
-		for (int y = 0; y < height; y++)
+		for (int x = 0; x < w; x++)
+		for (int y = 0; y < h; y++)
 		{
-			Tile src = Terraria.Main.tile[x, y];
+			Terraria.Tile src = Terraria.Main.tile[x, y];
 			ref WorldTile dst = ref world.Tile(x, y);
 			if (src == null)
 			{

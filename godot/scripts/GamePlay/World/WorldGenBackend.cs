@@ -1,11 +1,11 @@
 namespace CodenameX1.World;
 
-/// <summary>PassEditor / 世界生成使用的后端逻辑。</summary>
+/// <summary>PassEditor / 世界生成后端：管线为项目自研；Pass 来源分原生与泰拉参考。</summary>
 public enum WorldGenBackend
 {
-	/// <summary>项目原生生成（Pass 管线尚未接入）。</summary>
+	/// <summary>项目原生 Pass（管线已接入，Pass 列表待实现）。</summary>
 	Native,
-	/// <summary>泰拉瑞亚原版 WorldGen 参考。</summary>
+	/// <summary>泰拉瑞亚 GenPass 实现（经 TerrariaPassCatalog 注册）。</summary>
 	Terraria,
 }
 

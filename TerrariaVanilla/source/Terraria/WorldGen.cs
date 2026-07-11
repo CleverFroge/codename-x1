@@ -11117,6 +11117,24 @@ public class WorldGen
 		}
 	}
 
+#if CODENAME_X1_PORT
+	/// <summary>
+	/// Initialize world state and register passes without running them.
+	/// Caller must set Main dimensions and ActiveWorldFileData before calling.
+	/// </summary>
+	public static IReadOnlyList<GenPass> PreparePasses(GenerationProgress customProgressObject = null, WorldGenerator.Controller customController = null)
+	{
+		GenVars.configuration = WorldGenConfiguration.FromEmbeddedPath("Terraria.GameContent.WorldBuilding.Configuration.json");
+		Hooks.ProcessWorldGenConfig(ref GenVars.configuration);
+		_generator = new WorldGenerator(Main.ActiveWorldFileData.Seed, GenVars.configuration, customProgressObject, customController);
+		clearWorld();
+		Reset();
+		AddPasses();
+		DisablePassesForSpecialSeeds(_generator._passes);
+		return _generator._passes;
+	}
+#endif
+
 	public static void Reset()
 	{
 		Manifest.Version = Main.versionNumber;

@@ -1,17 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Threading;
 using CodenameX1.World;
-using Terraria.IO;
+using Terraria;
 using Terraria.WorldBuilding;
 
 namespace CodenameX1;
 
+/// <summary>
+/// PassEditor 宿主：使用项目自研 <see cref="WorldGenPipeline"/>，Pass 来自泰拉或（未来）原生目录。
+/// </summary>
 public static class WorldGenHostExt
 {
-	private static readonly Dictionary<string, string> _categoryMap = new()
+	private static readonly Dictionary<string, string> CategoryMap = new()
 	{
 		["Terrain"] = "地形塑造", ["Dunes"] = "地形塑造", ["Ocean Sand"] = "地形塑造",
 		["Sand Patches"] = "地形塑造", ["Floating Islands"] = "地形塑造", ["Underworld"] = "地形塑造",
@@ -55,150 +53,25 @@ public static class WorldGenHostExt
 		["clear"] = "初始化", ["Reset"] = "初始化",
 	};
 
-	private static Type? _controllerType;
-	private static Type? _snapshotFreqType;
-	private static object? _controller;
-	private static Thread? _genThread;
-	private static bool _genRunning;
-	private static int _completedPassCount;
-	private static bool _genFinished;
-	private static List<GenPass>? _passes;
+	private static WorldGenPipeline? _pipeline;
+	private static IReadOnlyList<GenPass>? _passes;
+	private static int _pollPreviousCount;
 
-	public static bool IsRunning => _genRunning;
-	public static bool IsFinished => _genFinished;
-	public static int CompletedPassCount => _completedPassCount;
-
-	private static Type ControllerType
-	{
-		get
-		{
-			if (_controllerType != null) return _controllerType;
-
-			var terrariaWG = typeof(Terraria.WorldBuilding.WorldGenerator);
-
-			// Try GetNestedType first
-			_controllerType = terrariaWG.GetNestedType("Controller", BindingFlags.Public | BindingFlags.NonPublic);
-
-			// Fallback: try resolving by full qualified name from the assembly
-			if (_controllerType == null)
-			{
-				_controllerType = terrariaWG.Assembly.GetType("Terraria.WorldBuilding.WorldGenerator+Controller");
-			}
-
-			if (_controllerType == null)
-			{
-				var allNested = terrariaWG.GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic);
-				Godot.GD.PrintErr(
-					$"WorldGenerator.Controller not found in {terrariaWG.Assembly.FullName}. " +
-					$"Available: [{string.Join(", ", allNested.Select(t => t.FullName))}]");
-				throw new InvalidOperationException(
-					$"WorldGenerator.Controller not found. See error log for details.");
-			}
-			return _controllerType;
-		}
-	}
-
-	private static Type SnapshotFreqType
-	{
-		get
-		{
-			if (_snapshotFreqType != null) return _snapshotFreqType;
-
-			var terrariaWG = typeof(Terraria.WorldBuilding.WorldGenerator);
-
-			_snapshotFreqType = terrariaWG.GetNestedType("SnapshotFrequency", BindingFlags.Public | BindingFlags.NonPublic);
-			if (_snapshotFreqType == null)
-			{
-				_snapshotFreqType = terrariaWG.Assembly.GetType("Terraria.WorldBuilding.WorldGenerator+SnapshotFrequency");
-			}
-			if (_snapshotFreqType == null)
-			{
-				var allNested = terrariaWG.GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic);
-				Godot.GD.PrintErr(
-					$"WorldGenerator.SnapshotFrequency not found. Available: [{string.Join(", ", allNested.Select(t => t.FullName))}]");
-				throw new InvalidOperationException("WorldGenerator.SnapshotFrequency not found.");
-			}
-			return _snapshotFreqType;
-		}
-	}
+	public static bool IsRunning => _pipeline?.IsRunning ?? false;
+	public static bool IsFinished => _pipeline?.IsFinished ?? false;
+	public static int CompletedPassCount => _pipeline?.CompletedPassCount ?? 0;
 
 	public static void Initialize(int width, int height, int seed)
 	{
 		Abort();
 
-		Terraria.Port.WorldGenHost.EnsureInitialized();
+		if (WorldGenSession.Backend == WorldGenBackend.Native)
+			throw new InvalidOperationException("项目原生 Pass 尚未实现。");
 
-		Terraria.Main.maxTilesX = width;
-		Terraria.Main.maxTilesY = height;
-		Terraria.Main.worldName = "PassEditor";
-		Terraria.Main.GameMode = 0;
-		Terraria.Main.ActiveWorldFileData = CreateWorldMetadata(seed);
-
-		var genVarsType = typeof(Terraria.WorldBuilding.GenVars);
-		var configField = genVarsType.GetField("configuration", BindingFlags.Public | BindingFlags.Static);
-		configField?.SetValue(null, WorldGenConfiguration.FromEmbeddedPath(
-			"Terraria.GameContent.WorldBuilding.Configuration.json"));
-
-		_controller = Activator.CreateInstance(ControllerType, [null])!;
-		SetProp("Paused", true);
-		SetProp("SnapshotFrequency", Enum.Parse(SnapshotFreqType, "None"));
-		SetProp("PauseOnHashMismatch", false);
-
-		_completedPassCount = 0;
-		_genFinished = false;
-		_passes = null;
-
-		_genThread = new Thread(() =>
-		{
-			_genRunning = true;
-			try
-			{
-				var progress = new GenerationProgress();
-				var genMethod = typeof(Terraria.WorldGen).GetMethod("GenerateWorld",
-					BindingFlags.Public | BindingFlags.Static,
-					null,
-					[typeof(GenerationProgress), ControllerType],
-					null);
-				if (genMethod != null)
-				{
-					bool ok = (bool)genMethod.Invoke(null, [progress, _controller])!;
-					Godot.GD.Print($"WorldGen.GenerateWorld finished: {ok}");
-				}
-				else
-				{
-					Godot.GD.PrintErr("Could not find GenerateWorld(GenerationProgress, Controller) method");
-				}
-			}
-			catch (Exception ex)
-			{
-				Godot.GD.PrintErr($"WorldGen thread crashed: {ex}");
-			}
-			finally
-			{
-				_genRunning = false;
-				_genFinished = true;
-			}
-		})
-		{
-			IsBackground = true,
-			Name = "WorldGen"
-		};
-		_genThread.Start();
-
-		SpinWait.SpinUntil(() =>
-		{
-			try
-			{
-				var p = GetProp("Passes") as List<GenPass>;
-				if (p != null && p.Count > 0)
-				{
-					_passes = p;
-					return true;
-				}
-			}
-			catch { }
-			return _genFinished;
-		}, 30000);
+		_pollPreviousCount = 0;
+		_pipeline = TerrariaPassCatalog.CreatePipeline(width, height, seed);
+		_passes = _pipeline.Passes;
+		_pipeline.Start();
 	}
 
 	public static List<PassInfo> GetPassList()
@@ -208,6 +81,7 @@ public static class WorldGenHostExt
 			return list;
 
 		int i = 0;
+		var results = WorldGen.Manifest.GenPassResults;
 		foreach (var pass in _passes)
 		{
 			var pi = new PassInfo
@@ -216,118 +90,46 @@ public static class WorldGenHostExt
 				Name = pass.Name,
 				Weight = pass.Weight,
 				Enabled = pass.Enabled,
-				Category = _categoryMap.GetValueOrDefault(pass.Name, "其他"),
+				Category = CategoryMap.GetValueOrDefault(pass.Name, "其他"),
 			};
 
-			try
-			{
-				var results = PassResults;
-				if (i < results.Count)
-					pi.DurationMs = results[i].DurationMs;
-			}
-			catch { }
+			if (i < results.Count)
+				pi.DurationMs = results[i].DurationMs;
 
 			list.Add(pi);
 			i++;
 		}
 
-		try
-		{
-			_completedPassCount = PassResults.Count;
-		}
-		catch { }
-
 		return list;
 	}
 
-	public static void StepForward()
-	{
-		if (!IsAlive()) return;
-		var passes = _passes;
-		if (passes == null || _completedPassCount >= passes.Count) return;
-
-		SetProp("PauseAfterPass", passes[_completedPassCount]);
-		SetProp("Paused", false);
-	}
-
-	public static void RunToPass(int targetIndex)
-	{
-		if (!IsAlive()) return;
-		var passes = _passes;
-		if (passes == null || targetIndex >= passes.Count) return;
-
-		SetProp("PauseAfterPass", passes[targetIndex]);
-		SetProp("Paused", false);
-	}
-
-	public static void RunAll()
-	{
-		if (!IsAlive()) return;
-		SetProp("PauseAfterPass", null);
-		SetProp("Paused", false);
-	}
-
-	public static void Pause()
-	{
-		if (_controller == null) return;
-		SetProp("Paused", true);
-	}
+	public static void StepForward() => _pipeline?.StepForward();
+	public static void RunToPass(int targetIndex) => _pipeline?.RunToPass(targetIndex);
+	public static void RunAll() => _pipeline?.RunAll();
+	public static void Pause() => _pipeline?.Pause();
 
 	public static void Abort()
 	{
-		if (_controller != null && _genRunning)
-		{
-			try
-			{
-				SetProp("QueuedAbort", true);
-				SetProp("Paused", false);
-			}
-			catch { }
-		}
-
-		if (_genThread != null && _genThread.IsAlive)
-			_genThread.Join(5000);
-
-		_genThread = null;
-		_controller = null;
+		_pipeline?.Abort();
+		_pipeline = null;
 		_passes = null;
-		_genRunning = false;
+		_pollPreviousCount = 0;
 	}
 
 	public static PollResult PollProgress()
 	{
 		var result = new PollResult();
-		if (_controller == null || _passes == null)
+		if (_pipeline == null || _passes == null)
 			return result;
 
-		int prevCount = _completedPassCount;
-
-		try
-		{
-			_completedPassCount = PassResults.Count;
-			result.IsPaused = (bool)GetProp("Paused")!;
-		}
-		catch { return result; }
-
-		result.CompletedPassCount = _completedPassCount;
-		result.TotalPassCount = _passes.Count;
-		result.JustCompleted = _completedPassCount > prevCount;
-
-		if (result.JustCompleted && prevCount < _passes.Count)
-		{
-			var pass = _passes[prevCount];
-			result.LastCompletedPassName = pass.Name;
-			result.LastCompletedPassIndex = prevCount;
-
-			try
-			{
-				var results = PassResults;
-				if (prevCount < results.Count)
-					result.LastCompletedDurationMs = results[prevCount].DurationMs;
-			}
-			catch { }
-		}
-
+		var poll = _pipeline.PollProgress(ref _pollPreviousCount);
+		result.CompletedPassCount = poll.CompletedPassCount;
+		result.TotalPassCount = poll.TotalPassCount;
+		result.IsPaused = poll.IsPaused;
+		result.JustCompleted = poll.JustCompleted;
+		result.LastCompletedPassName = poll.LastCompletedPassName;
+		result.LastCompletedPassIndex = poll.LastCompletedPassIndex;
+		result.LastCompletedDurationMs = poll.LastCompletedDurationMs;
 		return result;
 	}
 
@@ -358,31 +160,6 @@ public static class WorldGenHostExt
 		}
 
 		return world;
-	}
-
-	private static bool IsAlive() => _controller != null && _genRunning;
-
-	private static IList<GenPassResult> PassResults => Terraria.WorldBuilding.WorldGenerator.PassResults;
-
-	private static object? GetProp(string name)
-		=> ControllerType.GetProperty(name, BindingFlags.Public | BindingFlags.Instance)?.GetValue(_controller);
-
-	private static void SetProp(string name, object? value)
-		=> ControllerType.GetProperty(name, BindingFlags.Public | BindingFlags.Instance)?.SetValue(_controller, value);
-
-	private static WorldFileData CreateWorldMetadata(int seed)
-	{
-		var data = new WorldFileData(
-			Terraria.Main.GetWorldPathFromName(Terraria.Main.worldName, cloudSave: false), cloudSave: false);
-		data.Name = Terraria.Main.worldName;
-		data.GameMode = Terraria.Main.GameMode;
-		data.CreationTime = DateTime.Now;
-		data.Metadata = FileMetadata.FromCurrentSettings(FileType.World);
-		data.SetFavorite(favorite: false, saveChanges: false);
-		data.WorldGeneratorVersion = 1370094567425uL;
-		data.UniqueId = Guid.NewGuid();
-		data.SetSeed(seed.ToString());
-		return data;
 	}
 
 	public struct PollResult

@@ -1,16 +1,21 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using System.Reflection;
+using System.Linq;
+using System.Threading;
 using Terraria.IO;
 using Terraria.Initializers;
 using Terraria.Localization;
 using Terraria.Social;
+using Terraria.Utilities;
 using Terraria.WorldBuilding;
 
 namespace Terraria.Port;
 
 /// <summary>
-/// Minimal headless bootstrap for Terraria.WorldGen.GenerateWorld (dedServ-style init, no game loop).
+/// Minimal headless bootstrap for Terraria world generation (dedServ-style init, no game loop).
+/// Pass 执行使用 <see cref="WorldGen.PreparePasses"/> + 本类内联调度，不调用泰拉 WorldGenerator.GenerateWorld。
 /// </summary>
 public static class WorldGenHost
 {
@@ -22,9 +27,7 @@ public static class WorldGenHost
 	public static void EnsureInitialized()
 	{
 		if (_initialized)
-		{
 			return;
-		}
 
 		RuntimeDependencyLoader.EnsureRegistered();
 
@@ -40,13 +43,13 @@ public static class WorldGenHost
 
 		_main = new Main();
 		LaunchInitializer.LoadParameters(_main);
-		typeof(Main).GetMethod("Initialize", BindingFlags.Instance | BindingFlags.NonPublic)!
+		typeof(Main).GetMethod("Initialize", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
 			.Invoke(_main, null);
 
 		_initialized = true;
 	}
 
-	/// <summary>Run the vanilla 97-pass pipeline. Returns false if generation aborted.</summary>
+	/// <summary>Run generation via PreparePasses + inline pass runner.</summary>
 	public static bool Generate(int width, int height, int seed, Action<string, float>? onProgress = null)
 	{
 		EnsureInitialized();
@@ -59,18 +62,14 @@ public static class WorldGenHost
 
 		var progress = new GenerationProgress();
 		if (onProgress != null)
-		{
 			progress.TotalWeight = 1.0;
-		}
 
 		string lastStatus = "";
 		void Report()
 		{
 			string msg = !string.IsNullOrEmpty(Main.statusText) ? Main.statusText : progress.Message;
 			if (string.IsNullOrEmpty(msg))
-			{
 				msg = "Generating...";
-			}
 			float ratio = (float)Math.Clamp(progress.TotalProgress, 0.0, 1.0);
 			if (msg != lastStatus || onProgress != null)
 			{
@@ -80,12 +79,59 @@ public static class WorldGenHost
 		}
 
 		Report();
-		bool ok = WorldGen.GenerateWorld(progress, null);
+		var passes = WorldGen.PreparePasses(progress, null);
+		RunAllPassesBlocking(passes, Main.ActiveWorldFileData.Seed, GenVars.configuration, progress);
 		Report();
-		return ok;
+		return true;
 	}
 
-	/// <summary>Headless metadata without writing favorites (avoids Newtonsoft + System.Security.Permissions in Godot).</summary>
+	internal static void RunAllPassesBlocking(
+		IReadOnlyList<GenPass> passes,
+		int seed,
+		WorldGenConfiguration configuration,
+		GenerationProgress progress)
+	{
+		progress.TotalWeight = passes.Where(p => p.Enabled).Sum(p => p.Weight);
+		while (WorldGen.Manifest.GenPassResults.Count < passes.Count)
+		{
+			GenPass pass = passes[WorldGen.Manifest.GenPassResults.Count];
+			lock (pass)
+			{
+				WorldGen.Manifest.GenPassResults.Add(RunPass(pass, seed, configuration, progress));
+			}
+		}
+
+		WorldGen.Finish();
+	}
+
+	private static GenPassResult RunPass(GenPass pass, int seed, WorldGenConfiguration configuration, GenerationProgress progress)
+	{
+		if (!pass.Enabled)
+		{
+			return new GenPassResult { Name = pass.Name, Skipped = true };
+		}
+
+		var stopwatch = Stopwatch.StartNew();
+		Main.rand = new UnifiedRandom(seed);
+		progress.Start(pass.Weight);
+		try
+		{
+			pass.Apply(progress, configuration.GetPassConfiguration(pass.Name));
+		}
+		catch (Exception ex)
+		{
+			Trace.WriteLine($"Exception in Pass {pass.Name}: {ex}");
+		}
+
+		progress.End();
+		return new GenPassResult
+		{
+			Name = pass.Name,
+			DurationMs = (int)stopwatch.ElapsedMilliseconds,
+			RandNext = WorldGen.genRand.Next(),
+		};
+	}
+
 	private static WorldFileData CreateWorldMetadata(int seed)
 	{
 		var data = new WorldFileData(Main.GetWorldPathFromName(Main.worldName, cloudSave: false), cloudSave: false);

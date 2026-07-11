@@ -18,6 +18,8 @@
         ├── System/            # UI 系统（仅主界面等 UI；命名空间勿用 .System）
         ├── GamePlay/          # 玩法逻辑
         │   └── World/         # 世界数据与生成（CodenameX1.World）
+        │       ├── WorldGenPipeline.cs   # 自研 Pass 管线
+        │       └── TerrariaPassCatalog.cs # 仅加载泰拉 GenPass
         ├── Main.cs            # 游戏场景逻辑
         ├── WorldView.cs       # 世界渲染
         ├── PassEditor.cs      # Pass 逐步调试（进入前选原生/泰拉）
