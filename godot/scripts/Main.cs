@@ -137,15 +137,16 @@ public partial class Main : Node2D
 			}
 		}
 
-		if (_world == null || _generating)
+		var world = _world;
+		if (world == null || _generating)
 			return;
 
-		_player!.Tick((float)delta);
+		_player!.Tick((float)delta, world);
 		var tile = _player.GetTilePosition();
 		var chunk = _player.GetChunkPosition();
 		UpdateRuntimeChunks(chunk, delta);
 		_status!.Text =
-			$"seed {_pendingSeed} | tile ({tile.X}, {tile.Y}) | chunk ({chunk.X}, {chunk.Y}) | active {_runtime.ActiveChunks.Count} | retained {_runtime.RetainedChunks.Count} | WASD move, wheel zoom, R regen, Esc 主界面";
+			$"seed {_pendingSeed} | tile ({tile.X}, {tile.Y}) | chunk ({chunk.X}, {chunk.Y}) | active {_runtime.ActiveChunks.Count} | retained {_runtime.RetainedChunks.Count} | ←→ move, Space jump, wheel zoom, R regen, Esc 主界面";
 	}
 
 	private void UpdateRuntimeChunks(ChunkCoord playerChunk, double delta)
