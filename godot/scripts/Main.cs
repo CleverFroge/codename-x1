@@ -8,14 +8,18 @@ public partial class Main : Node2D
 {
 	private WorldView? _worldView;
 	private Camera2D? _camera;
+	private PlayerController? _player;
 	private Label? _status;
 	private readonly WorldGenerator _gen = new();
-	private float _panSpeed = 800f;
 
 	private readonly object _genLock = new();
 	private bool _generating;
 	private bool _genComplete;
 	private WorldState? _pendingWorld;
+	private WorldState? _world;
+	private WorldRuntime? _runtime;
+	private WorldSnapshotStore? _pendingSnapshot;
+	private WorldSnapshotStore? _snapshotStore;
 	private int _pendingSeed;
 	private long _pendingGenMs;
 	private string? _progressMsg;
@@ -29,7 +33,8 @@ public partial class Main : Node2D
 		_status.Text = "Starting... | Esc: 主界面";
 
 		_worldView = GetNode<WorldView>("WorldView");
-		_camera = GetNode<Camera2D>("Camera2D");
+		_camera = GetNode<Camera2D>("Player/Camera2D");
+		_player = GetNode<PlayerController>("Player");
 		_gen.ProgressChanged += OnProgress;
 		Generate(42);
 	}
@@ -37,8 +42,21 @@ public partial class Main : Node2D
 	private void Generate(int seed)
 	{
 		if (_generating) return;
+		_snapshotStore?.FlushLoadedDirtyChunks();
 		_generating = true;
 		_status!.Text = $"Generating (seed {seed})...";
+		if (WorldSnapshotStore.TryOpen(seed, out var snapshot))
+		{
+			lock (_genLock)
+			{
+				_pendingWorld = snapshot.World;
+				_pendingSnapshot = snapshot;
+				_pendingSeed = seed;
+				_pendingGenMs = 0;
+				_genComplete = true;
+			}
+			return;
+		}
 
 		Task.Run(() =>
 		{
@@ -50,6 +68,7 @@ public partial class Main : Node2D
 				lock (_genLock)
 				{
 					_pendingWorld = world;
+					_pendingSnapshot = null;
 					_pendingSeed = seed;
 					_pendingGenMs = sw.ElapsedMilliseconds;
 					_genComplete = true;
@@ -81,18 +100,23 @@ public partial class Main : Node2D
 	private void FinishGenerate()
 	{
 		var world = _pendingWorld!;
+		_world = world;
+		_runtime = new WorldRuntime(world);
 		int seed = _pendingSeed;
+		_snapshotStore = _pendingSnapshot ?? WorldSnapshotStore.Create(world, seed);
+		_pendingSnapshot = null;
 		long genMs = _pendingGenMs;
 
 		var sw = System.Diagnostics.Stopwatch.StartNew();
-		_worldView!.Render(world);
-		sw.Stop();
-
+		_worldView!.SetWorld(world);
 		var size = _worldView.GetWorldPixelSize();
-		_camera!.Position = size * 0.5f;
+		var spawn = new Vector2(
+			world.MaxTilesX / 2f * WorldConfig.TilePixelSize,
+			Mathf.Max(0, world.WorldSurface - 24) * WorldConfig.TilePixelSize);
+		_player!.Spawn(spawn, size);
 		_camera.Zoom = new Vector2(0.35f, 0.35f);
-		_status!.Text =
-			$"Terraria-style world | seed {seed} | {world.MaxTilesX}x{world.MaxTilesY} | WASD pan, wheel zoom, R regen, Esc 主界面";
+		UpdateRuntimeChunks(_player.GetChunkPosition(), 0);
+		sw.Stop();
 		_generating = false;
 		GD.Print($"Generate {genMs}ms, Render {sw.ElapsedMilliseconds}ms, seed={seed}");
 	}
@@ -113,13 +137,30 @@ public partial class Main : Node2D
 			}
 		}
 
-		var move = Vector2.Zero;
-		if (Input.IsActionPressed("ui_left")) move.X -= 1;
-		if (Input.IsActionPressed("ui_right")) move.X += 1;
-		if (Input.IsActionPressed("ui_up")) move.Y -= 1;
-		if (Input.IsActionPressed("ui_down")) move.Y += 1;
-		if (move != Vector2.Zero)
-			_camera!.Position += move.Normalized() * _panSpeed * (float)delta / _camera.Zoom.X;
+		if (_world == null || _generating)
+			return;
+
+		_player!.Tick((float)delta);
+		var tile = _player.GetTilePosition();
+		var chunk = _player.GetChunkPosition();
+		UpdateRuntimeChunks(chunk, delta);
+		_status!.Text =
+			$"seed {_pendingSeed} | tile ({tile.X}, {tile.Y}) | chunk ({chunk.X}, {chunk.Y}) | active {_runtime.ActiveChunks.Count} | retained {_runtime.RetainedChunks.Count} | WASD move, wheel zoom, R regen, Esc 主界面";
+	}
+
+	private void UpdateRuntimeChunks(ChunkCoord playerChunk, double delta)
+	{
+		_runtime!.Update(playerChunk, delta);
+		var requiredChunks = _worldView!.GetVisibleChunks(_camera!);
+		requiredChunks.UnionWith(_runtime.RetainedChunks);
+		_snapshotStore!.EnsureLoaded(requiredChunks);
+		_snapshotStore.UnloadOutside(requiredChunks);
+		_worldView.UpdateVisibleChunks(_camera);
+	}
+
+	public override void _ExitTree()
+	{
+		_snapshotStore?.FlushLoadedDirtyChunks();
 	}
 
 	public override void _UnhandledInput(InputEvent @event)

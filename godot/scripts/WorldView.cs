@@ -75,32 +75,99 @@ public partial class WorldView : Node2D
 		[263] = new(0.88f, 0.84f, 0.8f),      // Marble
 	};
 
-	private Sprite2D? _sprite;
 	private WorldState? _world;
+	private Sprite2D? _legacySprite;
+	private readonly Dictionary<ChunkCoord, Sprite2D> _visibleChunks = new();
+	private readonly Stack<Sprite2D> _spritePool = new();
 
-	public void Render(WorldState world)
+	public void SetWorld(WorldState world)
 	{
 		_world = world;
-		var data = BuildPixelData(world);
-		var img = Image.CreateFromData(world.MaxTilesX, world.MaxTilesY, false, Image.Format.Rgba8, data);
-		ApplyTexture(img);
+		ClearVisibleChunks();
+		_legacySprite ??= GetNodeOrNull<Sprite2D>("WorldSprite");
+		if (_legacySprite != null)
+			_legacySprite.Visible = false;
 	}
 
-	private byte[] BuildPixelData(WorldState world)
+	public void UpdateVisibleChunks(Camera2D camera)
 	{
-		int w = world.MaxTilesX;
-		int h = world.MaxTilesY;
-		var data = new byte[w * h * 4];
+		if (_world == null)
+			return;
 
-		for (int y = 0; y < h; y++)
-		for (int x = 0; x < w; x++)
+		var visible = GetVisibleChunks(camera);
+		foreach (var coord in visible)
 		{
-			Color c = GetTileColor(ref world.Tile(x, y));
-			int i = (y * w + x) * 4;
+			if (_visibleChunks.ContainsKey(coord))
+				continue;
+
+			var sprite = AcquireSprite();
+			RenderChunk(sprite, coord);
+			_visibleChunks.Add(coord, sprite);
+		}
+
+		var noLongerVisible = _visibleChunks
+			.Where(pair => !visible.Contains(pair.Key))
+			.ToArray();
+		foreach (var pair in noLongerVisible)
+		{
+			ReleaseSprite(pair.Value);
+			_visibleChunks.Remove(pair.Key);
+		}
+	}
+
+	public HashSet<ChunkCoord> GetVisibleChunks(Camera2D camera)
+	{
+		if (_world == null)
+			return new();
+
+		int chunkPixelSize = WorldConfig.ChunkTileSize * WorldConfig.TilePixelSize;
+		var viewportSize = camera.GetViewport().GetVisibleRect().Size / camera.Zoom;
+		var viewMin = camera.GetScreenCenterPosition() - viewportSize * 0.5f;
+		var viewMax = camera.GetScreenCenterPosition() + viewportSize * 0.5f;
+		int minX = Mathf.Clamp(Mathf.FloorToInt(viewMin.X / chunkPixelSize) - 1, 0, _world.ChunkCountX - 1);
+		int minY = Mathf.Clamp(Mathf.FloorToInt(viewMin.Y / chunkPixelSize) - 1, 0, _world.ChunkCountY - 1);
+		int maxX = Mathf.Clamp(Mathf.FloorToInt(viewMax.X / chunkPixelSize) + 1, 0, _world.ChunkCountX - 1);
+		int maxY = Mathf.Clamp(Mathf.FloorToInt(viewMax.Y / chunkPixelSize) + 1, 0, _world.ChunkCountY - 1);
+
+		var visible = new HashSet<ChunkCoord>();
+		for (int y = minY; y <= maxY; y++)
+		for (int x = minX; x <= maxX; x++)
+			visible.Add(new ChunkCoord(x, y));
+		return visible;
+	}
+
+	public void RefreshChunk(ChunkCoord coord)
+	{
+		if (_visibleChunks.TryGetValue(coord, out var sprite))
+			RenderChunk(sprite, coord);
+	}
+
+	private void RenderChunk(Sprite2D sprite, ChunkCoord coord)
+	{
+		var chunk = _world!.GetChunk(coord);
+		var data = BuildPixelData(chunk);
+		var image = Image.CreateFromData(chunk.Width, chunk.Height, false, Image.Format.Rgba8, data);
+		sprite.Texture = ImageTexture.CreateFromImage(image);
+		sprite.Position = new Vector2(
+			coord.X * WorldConfig.ChunkTileSize * WorldConfig.TilePixelSize,
+			coord.Y * WorldConfig.ChunkTileSize * WorldConfig.TilePixelSize);
+		sprite.Scale = new Vector2(WorldConfig.TilePixelSize, WorldConfig.TilePixelSize);
+	}
+
+	private byte[] BuildPixelData(WorldChunk chunk)
+	{
+		var data = new byte[chunk.Width * chunk.Height * 4];
+		int startX = chunk.Coord.X * WorldConfig.ChunkTileSize;
+		int startY = chunk.Coord.Y * WorldConfig.ChunkTileSize;
+		for (int y = 0; y < chunk.Height; y++)
+		for (int x = 0; x < chunk.Width; x++)
+		{
+			Color c = GetTileColor(ref _world!.Tile(startX + x, startY + y));
+			int i = (y * chunk.Width + x) * 4;
 			data[i] = (byte)(c.R * 255);
 			data[i + 1] = (byte)(c.G * 255);
 			data[i + 2] = (byte)(c.B * 255);
-			data[i + 3] = (byte)(c.A * 255);
+			data[i +3] = (byte)(c.A * 255);
 		}
 
 		return data;
@@ -121,13 +188,27 @@ public partial class WorldView : Node2D
 		return TileColors.GetValueOrDefault(t.Type, UnknownTileColor);
 	}
 
-	private void ApplyTexture(Image img)
+	private Sprite2D AcquireSprite()
 	{
-		var tex = ImageTexture.CreateFromImage(img);
-		_sprite ??= GetNode<Sprite2D>("WorldSprite");
-		_sprite.Texture = tex;
-		_sprite.Scale = new Vector2(WorldConfig.TilePixelSize, WorldConfig.TilePixelSize);
-		_sprite.Position = Vector2.Zero;
+		var sprite = _spritePool.Count > 0 ? _spritePool.Pop() : new Sprite2D();
+		AddChild(sprite);
+		sprite.Centered = false;
+		sprite.Visible = true;
+		return sprite;
+	}
+
+	private void ReleaseSprite(Sprite2D sprite)
+	{
+		RemoveChild(sprite);
+		sprite.Texture = null;
+		_spritePool.Push(sprite);
+	}
+
+	private void ClearVisibleChunks()
+	{
+		foreach (var sprite in _visibleChunks.Values)
+			ReleaseSprite(sprite);
+		_visibleChunks.Clear();
 	}
 
 	public Vector2 GetWorldPixelSize() =>

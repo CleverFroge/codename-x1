@@ -1,9 +1,9 @@
 namespace CodenameX1.World;
 
-public sealed class WorldTile
+public struct WorldTile
 {
 	public bool Active;
-	public int Type = TileIds.Dirt;
+	public int Type;
 	public byte Liquid;
 	public bool Lava;
 	public bool Honey;

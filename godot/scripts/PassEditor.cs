@@ -221,7 +221,7 @@ public partial class PassEditor : Control
 			try
 			{
 				var world = WorldGenHostExt.SnapshotTiles();
-				_worldView!.Render(world);
+				_worldView!.SetWorld(world);
 				if (!_cameraInitialized)
 				{
 					CenterCameraOnWorld();
@@ -235,6 +235,8 @@ public partial class PassEditor : Control
 		}
 
 		HandlePanZoom((float)delta);
+		if (_worldView != null && _camera != null)
+			_worldView.UpdateVisibleChunks(_camera);
 	}
 
 	private void CenterCameraOnWorld()
