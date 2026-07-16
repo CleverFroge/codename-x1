@@ -9,7 +9,7 @@ public enum WorldSize
 
 public static class WorldConfig
 {
-	public const int TilePixelSize = 2;
+	public const int TilePixelSize = 16;
 	public const int ChunkTileSize = 64;
 
 	public static (int W, int H) GetSize(WorldSize size) => size switch

@@ -152,6 +152,7 @@ public partial class WorldView : Node2D
 			coord.X * WorldConfig.ChunkTileSize * WorldConfig.TilePixelSize,
 			coord.Y * WorldConfig.ChunkTileSize * WorldConfig.TilePixelSize);
 		sprite.Scale = new Vector2(WorldConfig.TilePixelSize, WorldConfig.TilePixelSize);
+		sprite.TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
 	}
 
 	private byte[] BuildPixelData(WorldChunk chunk)

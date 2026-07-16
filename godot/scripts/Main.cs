@@ -114,7 +114,7 @@ public partial class Main : Node2D
 			world.MaxTilesX / 2f * WorldConfig.TilePixelSize,
 			Mathf.Max(0, world.WorldSurface - 24) * WorldConfig.TilePixelSize);
 		_player!.Spawn(spawn, size);
-		_camera.Zoom = new Vector2(0.35f, 0.35f);
+		_camera.Zoom = new Vector2(0.75f, 0.75f);
 		UpdateRuntimeChunks(_player.GetChunkPosition(), 0);
 		sw.Stop();
 		_generating = false;
@@ -168,11 +168,11 @@ public partial class Main : Node2D
 	{
 		if (@event is InputEventMouseButton mb && mb.Pressed)
 		{
-			float step = 0.05f;
+			float step = 0.25f;
 			if (mb.ButtonIndex == MouseButton.WheelUp)
-				_camera!.Zoom = (_camera.Zoom + Vector2.One * step).Clamp(Vector2.One * 0.05f, Vector2.One * 4f);
+				_camera!.Zoom = (_camera.Zoom + Vector2.One * step).Clamp(Vector2.One * 0.25f, Vector2.One * 4f);
 			else if (mb.ButtonIndex == MouseButton.WheelDown)
-				_camera!.Zoom = (_camera.Zoom - Vector2.One * step).Clamp(Vector2.One * 0.05f, Vector2.One * 4f);
+				_camera!.Zoom = (_camera.Zoom - Vector2.One * step).Clamp(Vector2.One * 0.25f, Vector2.One * 4f);
 		}
 		if (@event is InputEventKey key && key.Pressed && !key.Echo)
 		{

@@ -5,19 +5,25 @@ namespace CodenameX1;
 
 public partial class PlayerController : Node2D
 {
-	[Export] public float MoveSpeed = 120f;
-	[Export] public float Gravity = 800f;
-	[Export] public float JumpSpeed = 260f;
+	[Export] public float MoveSpeed = 960f;
+	[Export] public float Gravity = 6400f;
+	[Export] public float JumpSpeed = 2080f;
 
-	private static readonly Vector2 HitboxSize = new(10f, 14f);
+	private static readonly Vector2 HitboxSize = new(20f, 40f);
 	private Vector2 _worldPixelSize;
 	private Vector2 _velocity;
+	private bool _grounded;
+	private bool _jumpHeld;
+
+	public bool IsGrounded => _grounded;
 
 	public void Spawn(Vector2 position, Vector2 worldPixelSize)
 	{
 		_worldPixelSize = worldPixelSize;
 		Position = position.Clamp(Vector2.Zero, GetMaxWorldPosition());
 		_velocity = Vector2.Zero;
+		_grounded = false;
+		_jumpHeld = false;
 		QueueRedraw();
 	}
 
@@ -25,9 +31,14 @@ public partial class PlayerController : Node2D
 	{
 		float move = Input.GetAxis("ui_left", "ui_right");
 		_velocity.X = Mathf.MoveToward(_velocity.X, move * MoveSpeed, MoveSpeed * 8f * delta);
-		_velocity.Y = Mathf.Min(_velocity.Y + Gravity * delta, Gravity);
-		if (IsGrounded(world) && Input.IsActionJustPressed("ui_accept"))
+		bool jumpPressed = Input.IsActionPressed("ui_accept") || Input.IsKeyPressed(Key.Space);
+		if (_grounded && jumpPressed && !_jumpHeld)
+		{
 			_velocity.Y = -JumpSpeed;
+			_grounded = false;
+		}
+		_jumpHeld = jumpPressed;
+		_velocity.Y = Mathf.Min(_velocity.Y + Gravity * delta, Gravity);
 
 		MoveWithCollision(world, _velocity * delta);
 	}
@@ -45,12 +56,14 @@ public partial class PlayerController : Node2D
 
 	public override void _Draw()
 	{
-		DrawCircle(Vector2.Zero, 6f, Colors.Gold);
-		DrawArc(Vector2.Zero, 6f, 0f, Mathf.Tau, 16, Colors.White, 1f);
+		var hitbox = new Rect2(-HitboxSize * 0.5f, HitboxSize);
+		DrawRect(hitbox, Colors.Gold);
+		DrawRect(hitbox, Colors.White, false, 1f);
 	}
 
 	private void MoveWithCollision(WorldState world, Vector2 movement)
 	{
+		_grounded = false;
 		int steps = Mathf.Max(1, Mathf.CeilToInt(movement.Length() / WorldConfig.TilePixelSize));
 		var step = movement / steps;
 		for (int i = 0; i < steps; i++)
@@ -72,19 +85,12 @@ public partial class PlayerController : Node2D
 				{
 					Position = new Vector2(Position.X, Position.Y - step.Y);
 					_velocity.Y = 0f;
+					_grounded = step.Y > 0f;
 				}
 			}
 		}
 
 		Position = Position.Clamp(GetMinWorldPosition(), GetMaxWorldPosition());
-	}
-
-	private bool IsGrounded(WorldState world)
-	{
-		Position += Vector2.Down;
-		bool grounded = Collides(world);
-		Position -= Vector2.Down;
-		return grounded;
 	}
 
 	private bool Collides(WorldState world)
